@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Rastreador de Hábitos</title>
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+      :root {
+        --radius: 20px;
+
+        --background: #f8fafc;
+        --foreground: #0f172a;
+
+        --card: rgba(255, 255, 255, 0.9);
+        --card-foreground: #0f172a;
+
+        --border: #e2e8f0;
+        --input: #e2e8f0;
+
+        --primary: #8b5cf6;
+        --primary-hover: #7c3aed;
+        --primary-foreground: #ffffff;
+
+        --secondary: #f1f5f9;
+        --secondary-foreground: #334155;
+
+        --muted: #f8fafc;
+        --muted-foreground: #64748b;
+
+        --success: #22c55e;
+        --success-soft: #dcfce7;
+
+        --danger: #ef4444;
+        --danger-soft: #fee2e2;
+
+        --warning: #f59e0b;
+        --warning-soft: #fef3c7;
+
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+        --glass: blur(16px);
+      }
+
+      body.dark {
+        --background: #020617;
+        --foreground: #f8fafc;
+
+        --card: rgba(15, 23, 42, 0.82);
+        --card-foreground: #f8fafc;
+
+        --border: #1e293b;
+        --input: #1e293b;
+
+        --secondary: #111827;
+        --secondary-foreground: #e2e8f0;
+
+        --muted: #0f172a;
+        --muted-foreground: #94a3b8;
+
+        --success-soft: rgba(34, 197, 94, 0.15);
+        --danger-soft: rgba(239, 68, 68, 0.15);
+        --warning-soft: rgba(245, 158, 11, 0.15);
+
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px;
+        font-family: Inter, system-ui, sans-serif;
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(139, 92, 246, 0.12),
+            transparent 35%
+          ),
+          var(--background);
+        color: var(--foreground);
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin-top: 0;
+      }
+
+      h1 {
+        font-size: 40px;
+        margin-bottom: 6px;
+      }
+
+      .subtitle {
+        color: var(--muted-foreground);
+        margin-bottom: 28px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        gap: 12px;
+      }
+
+      .topbar-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .theme-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--foreground);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: var(--shadow);
+      }
+
+      .theme-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .primary-btn {
+        border: 0;
+        border-radius: 14px;
+        height: 48px;
+        padding: 0 18px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        cursor: pointer;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+      }
+
+      .primary-btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+      }
+
+      .ghost-btn {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+        color: var(--foreground);
+        height: 44px;
+        padding: 0 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--input);
+        background: var(--card);
+        color: var(--foreground);
+        padding: 14px;
+        font-size: 14px;
+        outline: none;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 110px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 32px 0 18px;
+      }
+
+      ul {
+        padding: 0;
+        list-style: none;
+      }
+
+      .habit {
+        margin-top: 18px;
+        padding: 22px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        backdrop-filter: var(--glass);
+      }
+
+      .habit.done {
+        background: var(--success-soft);
+      }
+
+      .habit.not-done {
+        background: var(--card);
+      }
+
+      .habit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 16px;
+      }
+
+      .habit-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .habit-title strong {
+        font-size: 18px;
+      }
+
+      .habit-frequency {
+        color: var(--muted-foreground);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .done .habit-title strong {
+        text-decoration: line-through;
+        opacity: 0.7;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .tag {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status {
+        margin-top: 16px;
+        width: fit-content;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status.done {
+        background: var(--success-soft);
+        color: #16a34a;
+      }
+
+      .status.pending {
+        background: var(--danger-soft);
+        color: #dc2626;
+      }
+
+      body.dark .status.done {
+        color: #4ade80;
+      }
+
+      body.dark .status.pending {
+        color: #f87171;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .action-btn {
+        border: 0;
+        border-radius: 12px;
+        height: 40px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+
+      .action-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .action-primary {
+        background: rgba(139, 92, 246, 0.12);
+        color: #7c3aed;
+      }
+
+      .action-success {
+        background: var(--success-soft);
+        color: #16a34a;
+      }
+
+      .action-danger {
+        background: var(--danger-soft);
+        color: #dc2626;
+      }
+
+      body.dark .action-primary {
+        color: #c4b5fd;
+      }
+
+      body.dark .action-success {
+        color: #4ade80;
+      }
+
+      body.dark .action-danger {
+        color: #f87171;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 999;
+      }
+
+      .modal.open {
+        display: flex;
+      }
+
+      .modal-content {
+        width: 100%;
+        max-width: 520px;
+        border-radius: 28px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .icon-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--foreground);
+        cursor: pointer;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 18px;
+        }
+
+        .habit-header {
+          flex-direction: column;
+        }
+
+        .actions {
+          width: 100%;
+        }
+
+        .action-btn {
+          flex: 1;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="topbar">
+      <div>
+        <h1>Hábitos ✨</h1>
+
+        <div class="subtitle">
+          Organize sua rotina de um jeito bonito e leve.
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="primary-btn" onclick="openCreateModal()">
+          <i class="ph ph-plus-circle"></i>
+          Novo hábito
+        </button>
+
+        <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
+          <i class="ph ph-moon-stars"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <input
+        id="search"
+        placeholder="Pesquisar hábitos..."
+        oninput="loadHabits()"
+      />
+
+      <input
+        id="tags-filter"
+        placeholder="Filtrar por tags"
+        oninput="loadHabits()"
+      />
+    </div>
+
+    <div class="section-title">
+      <h2>Hábitos</h2>
+    </div>
+
+    <ul id="habits"></ul>
+
+    <div class="modal" id="habit-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 id="modal-title">Novo hábito</h3>
+
+            <div class="subtitle">Preencha as informações do hábito.</div>
+          </div>
+
+          <button class="icon-btn" onclick="closeModal()">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <input id="name" placeholder="Nome do hábito" />
+
+        <div style="height: 12px"></div>
+
+        <textarea id="description" placeholder="Descrição"></textarea>
+
+        <div style="height: 12px"></div>
+
+        <input id="tags" placeholder="Tags separadas por vírgula" />
+
+        <div style="height: 12px"></div>
+
+        <select id="frequency">
+          <option value="daily">Diário</option>
+          <option value="weekly">Semanal</option>
+        </select>
+
+        <div class="modal-actions">
+          <button class="ghost-btn" onclick="closeModal()">Cancelar</button>
+
+          <button class="primary-btn" onclick="submitHabit()">
+            <i class="ph ph-floppy-disk"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://localhost:3333";
+
+      const $ = (s) => document.querySelector(s);
+
+      const habitsList = $("#habits");
+
+      let editingHabitId = null;
+
+      const theme =
+        localStorage.getItem("theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+      document.body.classList.toggle("dark", theme === "dark");
+
+      updateThemeIcon();
+
+      function updateThemeIcon() {
+        $("#theme-btn").innerHTML = document.body.classList.contains("dark")
+          ? `<i class="ph ph-sun"></i>`
+          : `<i class="ph ph-moon-stars"></i>`;
+      }
+
+      const req = async (url, options = {}) => {
+        try {
+          const res = await fetch(`${API}${url}`, options);
+
+          if (!res.ok) {
+            throw new Error();
+          }
+
+          return res.headers.get("content-type")?.includes("application/json")
+            ? res.json()
+            : res;
+        } catch {
+          console.error("Algo deu errado");
+        }
+      };
+
+      const values = (id) =>
+        $(id)
+          .value.split(",")
+          .map((v) => v.trim())
+          .filter(Boolean);
+
+      function toggleTheme() {
+        document.body.classList.toggle("dark");
+
+        localStorage.setItem(
+          "theme",
+          document.body.classList.contains("dark") ? "dark" : "light",
+        );
+
+        updateThemeIcon();
+      }
+
+      function openCreateModal() {
+        editingHabitId = null;
+
+        $("#modal-title").textContent = "Novo hábito";
+
+        ["#name", "#description", "#tags"].forEach((id) => ($(id).value = ""));
+
+        $("#frequency").value = "daily";
+
+        $("#habit-modal").classList.add("open");
+      }
+
+      function closeModal() {
+        $("#habit-modal").classList.remove("open");
+      }
+
+      async function submitHabit() {
+        const payload = {
+          name: $("#name").value,
+          description: $("#description").value,
+          frequency: $("#frequency").value,
+          tags: values("#tags"),
+        };
+
+        if (editingHabitId) {
+          await req(`/habits/${editingHabitId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          await req("/habits", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+        }
+
+        closeModal();
+
+        loadHabits();
+      }
+
+      async function loadHabits() {
+        const params = new URLSearchParams();
+
+        if ($("#search").value) {
+          params.set("search", $("#search").value);
+        }
+
+        values("#tags-filter").forEach((tag) => params.append("tags", tag));
+
+        // The endpoint now returns only:
+        // { habits: Habit[] }
+
+        const data = await req(`/habits?${params}`);
+
+        if (!data) return;
+
+        habitsList.innerHTML = "";
+
+        for (const habit of data.habits) {
+          renderHabit(habit, habitsList);
+        }
+      }
+
+      async function renderHabit(habit, container) {
+        const today = new Date().toISOString().split("T")[0];
+
+        const isDone = habit.logs?.find((l) => l.date === today)?.completed;
+
+        const li = document.createElement("li");
+
+        li.className = `habit ${isDone ? "done" : "not-done"}`;
+
+        li.innerHTML = `
+          <div class="habit-header">
+            <div>
+              <div class="habit-title">
+                <strong>${habit.name}</strong>
+              </div>
+
+              <div class="habit-frequency">
+                ${habit.frequency === "daily" ? "Diário" : "Semanal"}
+              </div>
+            </div>
+          </div>
+
+          <p>
+            ${habit.description || "Sem descrição"}
+          </p>
+
+          <div class="tag-list">
+            ${habit.tags
+              .map((tag) => `<span class="tag">#${tag.name}</span>`)
+              .join("")}
+          </div>
+
+          <div class="status ${isDone ? "done" : "pending"}">
+            <i class="ph ${isDone ? "ph-check-circle" : "ph-clock"}"></i>
+
+            ${isDone ? "Concluído hoje" : "Pendente"}
+          </div>
+
+          <div class="actions">
+            <button
+              class="action-btn action-success"
+              onclick="toggleHabit('${habit.id}', ${!isDone})"
+            >
+              <i class="ph ${isDone ? "ph-x-circle" : "ph-check-circle"}"></i>
+
+              ${isDone ? "Desmarcar" : "Concluir"}
+            </button>
+
+            <button
+              class="action-btn action-primary"
+              onclick="editHabit('${habit.id}')"
+            >
+              <i class="ph ph-pencil-simple"></i>
+              Editar
+            </button>
+
+            <button
+              class="action-btn action-danger"
+              onclick="deleteHabit('${habit.id}')"
+            >
+              <i class="ph ph-trash"></i>
+              Excluir
+            </button>
+          </div>
+        `;
+
+        container.appendChild(li);
+      }
+
+      async function editHabit(id) {
+        const data = await req("/habits");
+
+        if (!data) return;
+
+        const habit = data.habits.find((h) => h.id === id);
+
+        if (!habit) return;
+
+        editingHabitId = id;
+
+        $("#modal-title").textContent = "Editar hábito";
+
+        $("#name").value = habit.name;
+        $("#description").value = habit.description || "";
+        $("#tags").value = habit.tags.map((t) => t.name).join(", ");
+
+        $("#frequency").value = habit.frequency;
+
+        $("#habit-modal").classList.add("open");
+      }
+
+      async function deleteHabit(id) {
+        await req(`/habits/${id}`, {
+          method: "DELETE",
+        });
+
+        loadHabits();
+      }
+
+      async function toggleHabit(id, completed) {
+        await req(`/habits/${id}/check`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ completed }),
+        });
+
+        loadHabits();
+      }
+
+      loadHabits();
+    </script>
+  </body>
+</html>
