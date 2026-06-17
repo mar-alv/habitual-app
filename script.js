@@ -383,7 +383,7 @@ async function exportHabits() {
   const a = document.createElement("a");
 
   a.href = url;
-  a.download = "habits-export.csv";
+  a.download = "habitos-exportados.csv";
 
   a.click();
 
@@ -440,7 +440,7 @@ function downloadExampleCsv() {
   const a = document.createElement("a");
 
   a.href = url;
-  a.download = "habits-example.csv";
+  a.download = "habitos-exemplo.csv";
 
   a.click();
 
